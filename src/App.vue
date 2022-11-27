@@ -2,7 +2,7 @@
 import JabcodeJSInterface from './components/jabcodeJSLib.min.js'
 
 import { ref } from 'vue'
-import {Base64} from 'js-base64'
+import { Base64 } from 'js-base64'
 import { ElMessage } from 'element-plus'
 
 import {
@@ -12,49 +12,51 @@ import {
   Upload,
   Cpu,
   Star,
+  Plus
 } from '@element-plus/icons-vue'
-const imgStr=ref('');
-const imgdec =ref('');
+
+const imgStr = ref('');
+const imgsrc = ref('');
+const imgdec = ref('');
 const text = ref('');
 const viscode = ref(false);
-const jabcode=new JabcodeJSInterface();
+const jabcode = new JabcodeJSInterface();
+const activeName = ref('scan');
 function jabencode() {
-  
-  if(text.value=="")
-  {
-  ElMessage({
-    showClose: true,
-    message: '输入内容不能为空',
-    type: 'error',
-  })
+
+  if (text.value == "") {
+    ElMessage({
+      showClose: true,
+      message: '输入内容不能为空',
+      type: 'error',
+    })
     return;
   }
-  viscode.value=true;
-  var textbase64=Base64.encode(text.value);
-  imgStr.value=jabcode.encode_message(textbase64,25,64);
- //console.log( imgStr.value)
- // var srccode=textbase64.value.replace("data:image/png;base64,","");
+  viscode.value = true;
+  var textbase64 = Base64.encode(text.value);
+  imgStr.value = jabcode.encode_message(textbase64, 25, 64);
 
 
- 
+
 }
 
 
-function jabdecode(imgbase64)
-{
-  jabcode.decode_message(imgbase64).then(res=>{
-    imgdec.value=Base64.decode(res);
-    console.log(imgdec.value);
+function jabdecode(imgbase64) {
+  jabcode.decode_message(imgbase64).then(res => {
+    imgdec.value = Base64.decode(res);
+
   });
 }
 
 function getFile(file, fileList) {
   getBase64(file.raw).then(res => {
     const params = res
-    imgStr.value = params;
-    console.log(params);
-    jabdecode(params);
-  })
+    imgsrc.value = params;
+
+    jabdecode(imgsrc.value);
+  });
+
+
 }
 
 function getBase64(file) {
@@ -78,60 +80,103 @@ function getBase64(file) {
 function handleUploadRemove(file, fileList) {
 
 }
-function  handlePictureCardPreview(file) {
+function handlePictureCardPreview(file) 
+{
 
 }
 
 </script>
 
-<template>
- <el-main>
+<template  class="wrap">
+
   <el-card class="box-card">
- <h1>JAB彩虹码密信工具</h1>
- <el-row>
- <div>Create from AntlersLab</div>
- <el-link type="info" :icon="Edit" href="https://github.com/jsBrique/jabcode_vue_demo">开源代码</el-link>
-</el-row>
- <el-divider />
+    <template #header>
+      <h1>JAB彩虹码密信工具</h1>
 
- <el-row class="mb-4" :type="flex" >
+      <el-row>
+        <div>Create from dobriq</div>
+        <el-link type="info" :icon="Edit" style="margin-left:10px;" href="https://github.com/jsBrique/jabcode_vue_demo">
+          项目源码</el-link>
+        <el-link type="info" :icon="Edit" style="margin-left:10px;" href="https://github.com/jabcode/jabcode">JABCode
+        </el-link>
+      </el-row>
 
-<el-button type="primary"  :icon="Cpu" @click="jabencode">生成</el-button>
-<!-- <el-button type="primary" :icon="Upload" @click="jabdecode">上传</el-button> -->
-
-<div>
-<el-upload
-  list-type="picture"
-   action=''
-   accept=".jpg, .png"
-   :limit="1"
-   :auto-upload="false"
-   :file-list="fileList"
-   :on-change="getFile"
-   :on-preview="handlePictureCardPreview"
-   :on-remove="handleUploadRemove"
-   >
-	<el-button style="margin-left:10px;" type="primary" :icon="Upload"  @click="uploadimg">上传</el-button>
-</el-upload>
-</div>
-
-</el-row>
-<div>加密内容</div>
-
-<el-input type="textarea"  v-model="text" style="resize:none; width: 80%;height: 40%;" placeholder="请输入要加密的内容"></el-input>
-
-<div>识别结果：</div>
-<el-input type="textarea" style= "resize:none; width: 80%;height: 40%;">{{imgdec}}</el-input>
+    </template>
+    <el-main>
 
 
-<div v-if="viscode">
-  <div>长按图片保存即可分享~</div>
-  <img :src="imgStr" alt="图片未生成" />
-  </div>
+      <el-tabs v-model="activeName" type="card">
+        <el-tab-pane label="生成" name="gen">
+
+          <el-button type="warning" :icon="Cpu" @click="jabencode">生成</el-button>
+          <br />
+          <br />
+          <el-input type="textarea" resize="none" rows="5" v-model="text" width="80%" placeholder="请输入要加密的内容">
+          </el-input>
+          <div v-if="viscode">
+        
+            <br/>
+            <img :src="imgStr" alt="图片未生成" />
+            <br/>
+            <div>长按图片保存即可分享~</div>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane label="识别" name="scan">
+ 
+          <el-upload list-type="picture-card" action='' drag="true" accept=".jpg, .png" :limit="1" :auto-upload="false"
+            :file-list="fileList" :on-change="getFile" :on-preview="handlePictureCardPreview"
+            :on-remove="handleUploadRemove">
+            <el-link :icon="Plus">
+              导入
+            </el-link>
+
+          </el-upload>
+          <div>识别文本：</div>
+          <el-input type="textarea" resize="none" v-model="imgdec" rows="5" width="80%"></el-input>
+
+        </el-tab-pane>
+
+      </el-tabs>
+
+
+
+
+
+    </el-main>
+  </el-card>
   
-
-</el-card>
-</el-main>
 </template>
 
 
+<style>
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.text {
+  font-size: 14px;
+}
+
+.item {
+  margin-bottom: 18px;
+}
+
+.box-card {
+  min-width: 480px;
+  max-width: 620px;
+  align-items: center;
+ 
+
+ 
+   
+    
+}
+.warp {
+
+  position: relative;
+
+
+}
+</style>
